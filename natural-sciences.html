@@ -1,0 +1,2116 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>國小自然科學數位AI教科書｜天氣——天空的魔法密碼</title>
+  <style>
+    :root {
+      --bg-shelf: #0c1524;
+      --bg-desk: #1e293b;
+      --bg-page: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #f0f9ff;
+      --accent: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --page-shadow: 0 15px 35px rgba(0,0,0,0.35);
+      --font-scale: 16px;
+    }
+
+    [data-theme="sepia"] {
+      --bg-shelf: #2c221a;
+      --bg-desk: #3e3228;
+      --bg-page: #fbf7ee;
+      --text-main: #3d2c1e;
+      --text-muted: #786452;
+      --border-color: #e8ded0;
+      --primary: #946c4d;
+      --primary-dark: #785338;
+      --primary-light: #f4ede2;
+      --accent: #b45309;
+      --page-shadow: 0 15px 35px rgba(40,25,15,0.4);
+    }
+
+    [data-theme="dark"] {
+      --bg-shelf: #050811;
+      --bg-desk: #0f172a;
+      --bg-page: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --primary-light: #0f2744;
+      --accent: #60a5fa;
+      --page-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "微軟正黑體", Roboto, sans-serif;
+      background: radial-gradient(circle at center, var(--bg-desk), var(--bg-shelf));
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      font-size: var(--font-scale);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Top Navigation Toolbar */
+    .top-navbar {
+      height: 56px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 50;
+      color: #ffffff;
+    }
+
+    .brand-group { display: flex; align-items: center; gap: 10px; }
+    .brand-badge {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .brand-title { font-size: 1.05rem; font-weight: 800; color: #f8fafc; letter-spacing: 0.5px; }
+
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .nav-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #f1f5f9;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
+    .nav-btn.active { background: #0284c7; border-color: #38bdf8; color: #ffffff; }
+
+    /* Book Stage */
+    .book-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      position: relative;
+      overflow: hidden;
+      perspective: 2500px;
+    }
+
+    .book-frame {
+      width: 100%;
+      max-width: 1260px;
+      height: 100%;
+      max-height: 820px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      background: var(--bg-page);
+      border-radius: 12px;
+      box-shadow: var(--page-shadow);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .book-frame.single-mode {
+      grid-template-columns: 1fr;
+      max-width: 760px;
+    }
+
+    /* Individual Page Panel */
+    .page-sheet {
+      background: var(--bg-page);
+      height: 100%;
+      overflow-y: auto;
+      padding: 30px 34px;
+      display: none;
+      flex-direction: column;
+      position: relative;
+      user-select: text;
+    }
+    .page-sheet.active { display: flex; }
+    .page-sheet::-webkit-scrollbar { width: 5px; }
+    .page-sheet::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+    /* Spine Center Shadows in Spread Mode */
+    .book-frame:not(.single-mode) .page-sheet:nth-child(odd) {
+      border-right: 1px solid var(--border-color);
+      box-shadow: inset -25px 0 25px -15px rgba(0,0,0,0.07);
+    }
+    .book-frame:not(.single-mode) .page-sheet:nth-child(even) {
+      box-shadow: inset 25px 0 25px -15px rgba(0,0,0,0.07);
+    }
+
+    /* Page Header & Footer */
+    .sheet-header {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      border-bottom: 1.5px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+    .sheet-header-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+    }
+
+    .sheet-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1.5px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .page-num-tag {
+      background: var(--border-color);
+      color: var(--text-main);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.76rem;
+    }
+
+    /* Typography inside pages */
+    .sec-tag {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .title-h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.35;
+      margin-bottom: 12px;
+    }
+    .title-h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 12px 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .para-body {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    /* Interactive Cards & Boxes */
+    .interactive-card {
+      background: var(--primary-light);
+      border: 1.5px solid var(--primary);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+    }
+    .card-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .myth-box {
+      background: #fff1f2;
+      border: 1.5px solid #f43f5e;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 12px 0;
+    }
+    [data-theme="dark"] .myth-box { background: #3b111a; border-color: #f43f5e; }
+    .myth-title { color: #e11d48; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; }
+
+    /* Interactive Action Buttons */
+    .btn-action {
+      background: #ffffff;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+    .btn-action:hover, .btn-action.active {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    .btn-action:active { transform: scale(0.96); }
+
+    /* Navigation Arrows */
+    .turn-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.75);
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      cursor: pointer;
+      z-index: 35;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      transition: all 0.25s;
+    }
+    .turn-btn:hover { background: #0284c7; transform: translateY(-50%) scale(1.1); border-color: #38bdf8; }
+    .turn-prev { left: 16px; }
+    .turn-next { right: 16px; }
+
+    /* Bottom Control Bar */
+    .bottom-navbar {
+      height: 52px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+      color: #ffffff;
+    }
+    .progress-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .page-range-input {
+      flex: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .page-range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+      cursor: pointer;
+    }
+
+    /* Floating AI Button */
+    .floating-ai-trigger {
+      position: fixed;
+      bottom: 66px;
+      right: 24px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      font-weight: 800;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      z-index: 60;
+      font-size: 0.92rem;
+      transition: all 0.25s;
+    }
+    .floating-ai-trigger:hover { transform: scale(1.06); box-shadow: 0 10px 30px rgba(37, 99, 235, 0.6); }
+
+    /* AI Tutor Drawer */
+    .ai-modal-drawer {
+      position: fixed;
+      bottom: 72px;
+      right: 24px;
+      width: 380px;
+      max-width: calc(100vw - 32px);
+      height: 520px;
+      max-height: calc(100vh - 140px);
+      background: var(--bg-page);
+      border: 1.5px solid var(--border-color);
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      display: none;
+      flex-direction: column;
+      z-index: 65;
+      overflow: hidden;
+      animation: popDrawer 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popDrawer { from { transform: translateY(40px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+    .ai-modal-drawer.open { display: flex; }
+    
+    .ai-drawer-header {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 800;
+    }
+    .ai-drawer-tabs {
+      display: flex;
+      background: var(--primary-light);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .ai-tab-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+    }
+    .ai-tab-btn.active {
+      color: var(--primary);
+      border-bottom: 2.5px solid var(--primary);
+      background: var(--bg-page);
+    }
+    .ai-chat-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* TOC Modal */
+    .toc-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .toc-backdrop.open { display: flex; }
+    .toc-content-pane {
+      width: 340px;
+      height: 100%;
+      background: var(--bg-page);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 8px 0 30px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      padding-bottom: 14px;
+      border-bottom: 1.5px solid var(--border-color);
+      margin-bottom: 16px;
+    }
+    .toc-scroll-list { flex: 1; overflow-y: auto; }
+    .toc-entry {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+    .toc-entry:hover, .toc-entry.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 960px) {
+      .book-frame { grid-template-columns: 1fr !important; max-width: 100% !important; }
+      .turn-btn { display: none; }
+      .page-sheet { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-navbar">
+    <div class="brand-group">
+      <span class="brand-badge">108課綱國小自然</span>
+      <h1 class="brand-title">天氣——天空的魔法密碼</h1>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" id="btn-toc" title="章節目錄">📑 目錄</button>
+      <button class="nav-btn active" id="btn-view-mode" title="單雙頁切換">📖 雙頁模式</button>
+      <button class="nav-btn" id="btn-audio" title="翻頁音效">🔊 音效: 開</button>
+      <button class="nav-btn" id="btn-font-toggle" title="調整字體大小">🔤 字級</button>
+      <button class="nav-btn" id="btn-theme-toggle" title="切換色彩模式">🌓 護眼</button>
+    </div>
+  </header>
+
+  <!-- Book Viewport Stage -->
+  <main class="book-stage">
+    <!-- Turn Navigation Buttons -->
+    <button class="turn-btn turn-prev" id="btn-prev" title="上一頁">‹</button>
+    <button class="turn-btn turn-next" id="btn-next" title="下一頁">›</button>
+
+    <div class="book-frame" id="book-frame">
+      <!-- ================= PAGE 1: COVER ================= -->
+      <section class="page-sheet page-left" data-page="1">
+        <div class="sheet-header">
+          <span>教育部審定 國民小學教科書</span>
+          <span class="sheet-header-badge">第六學年 自然科學</span>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:10px;">
+          <div style="width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #2563eb); display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:#fff; box-shadow:0 8px 20px rgba(2,132,199,0.35); margin-bottom:16px;">
+            ⛅
+          </div>
+          <div class="sec-tag">第三學習階段 核心素養教材</div>
+          <h1 style="font-size:1.8rem; font-weight:900; color:var(--text-main); margin-bottom:8px; line-height:1.25;">
+            天空的魔法密碼
+          </h1>
+          <h2 style="font-size:1.1rem; font-weight:700; color:var(--primary); margin-bottom:16px;">
+            多變的天氣與氣象偵探
+          </h2>
+          <p class="para-body" style="max-width:380px; text-align:center; font-size:0.9rem; color:var(--text-muted); margin-bottom:24px;">
+            從一滴水的世紀奇幻旅行，到掌握風雲變幻的防災智慧。融入「AI助理即時互動」與「觸控動手做實驗」之次世代數位課本。
+          </p>
+
+          <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="btn-action" onclick="app.goToPage(2)">📑 查看全書目錄</button>
+            <button class="btn-action" style="background:var(--primary); color:#fff;" onclick="app.goToPage(3)">🚀 開始探索第 1 頁</button>
+          </div>
+
+          <div style="background:var(--primary-light); border:1px dashed var(--primary); border-radius:10px; padding:10px 16px; font-size:0.8rem; color:var(--primary-dark); display:flex; gap:12px;">
+            <span>💧 水循環探究</span>
+            <span>⚡ 天氣圖解碼</span>
+            <span>🌀 颱風大解剖</span>
+            <span>🛡️ 避難防災包</span>
+          </div>
+        </div>
+        <div class="sheet-footer">
+          <span>國家教育研究院審定標竿樣板</span>
+          <span class="page-num-tag">第 1 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 2: TABLE OF CONTENTS ================= -->
+      <section class="page-sheet page-right" data-page="2">
+        <div class="sheet-header">
+          <span>單元導覽與知識地圖</span>
+          <span class="sheet-header-badge">學習表現 × 學習內容</span>
+        </div>
+        <h2 class="title-h1" style="font-size:1.3rem;">📚 本單元探究學習地圖</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:12px;">
+          請點選下方任一章節卡片，直接翻頁進行沉浸式互動學習：
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div class="interactive-card" style="margin:0; cursor:pointer; padding:10px 14px;" onclick="app.goToPage(3)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color:var(--primary); font-size:0.92rem;">模組一：水循環與多變的水</strong>
+              <span class="sheet-header-badge">P.3 - P.6</span>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              水的三態變化（吸熱/放熱）、瓶中造霧實驗、AI除濕機思維互動
+            </p>
+          </div>
+
+          <div class="interactive-card" style="margin:0; cursor:pointer; padding:10px 14px;" onclick="app.goToPage(7)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color:var(--primary); font-size:0.92rem;">模組二：解讀天空密碼——天氣圖</strong>
+              <span class="sheet-header-badge">P.7 - P.8</span>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              高低氣壓H/L、等壓線與風速、冷鋒/暖鋒/滯留鋒互動模擬
+            </p>
+          </div>
+
+          <div class="interactive-card" style="margin:0; cursor:pointer; padding:10px 14px;" onclick="app.goToPage(9)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color:var(--primary); font-size:0.92rem;">模組三：台灣特殊天氣——梅雨與颱風</strong>
+              <span class="sheet-header-badge">P.9 - P.10</span>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              滯留鋒連日降雨、颱風眼與眼牆立體解剖、路徑潛勢預報圈破解
+            </p>
+          </div>
+
+          <div class="interactive-card" style="margin:0; cursor:pointer; padding:10px 14px;" onclick="app.goToPage(11)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="color:var(--primary); font-size:0.92rem;">模組四：防災總動員與素養檢核</strong>
+              <span class="sheet-header-badge">P.11 - P.14</span>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              降雨分級標準、溪流齊頭水警訊、緊急避難包打包遊戲、素養闖關
+            </p>
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <span>單元架構：四大學習模組</span>
+          <span class="page-num-tag">第 2 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 3: MODULE 1 INTRO ================= -->
+      <section class="page-sheet page-left" data-page="3">
+        <div class="sheet-header">
+          <span>核心模組一：水循環與多變的水</span>
+          <span class="sheet-header-badge">生活現象探究</span>
+        </div>
+        <div class="sec-tag">1.1 神祕的水滴從哪裡來？</div>
+        <h2 class="title-h1">生活中的「冷凝」奇幻魔術</h2>
+        <p class="para-body">
+          早晨走到校園草地上，綠油油的草尖掛著晶瑩剔透的<strong>「露珠」</strong>；夏日從冰箱拿出冰涼汽水放在桌上，沒幾分鐘，鋁罐外壁竟然開始「冒汗」，匯聚成一顆顆小水滴；房間裡開了半天的除濕機，水箱更能源源不絕倒出一整桶水！
+        </p>
+
+        <!-- Interactive Hotspot Cards -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+          <div class="interactive-card" style="margin:0; text-align:center; padding:10px; cursor:pointer;" onclick="app.showTip('清晨露水', '夜間地表輻射冷卻，近地面空氣遇冷釋放熱量，看不見的水蒸氣在草葉表面凝結成微小露珠。')">
+            <div style="font-size:1.6rem;">🌿</div>
+            <strong style="font-size:0.85rem; color:var(--primary);">清晨草地露水</strong>
+            <div style="font-size:0.72rem; color:var(--text-muted);">點擊查看原理</div>
+          </div>
+          <div class="interactive-card" style="margin:0; text-align:center; padding:10px; cursor:pointer;" onclick="app.showTip('冰飲罐冒汗', '空氣中看不見的高溫水蒸氣碰觸冰涼的罐壁，降溫放熱瞬間凝結成液態水滴！')">
+            <div style="font-size:1.6rem;">🥤</div>
+            <strong style="font-size:0.85rem; color:var(--primary);">冰汽水罐冒汗</strong>
+            <div style="font-size:0.72rem; color:var(--text-muted);">點擊查看原理</div>
+          </div>
+          <div class="interactive-card" style="margin:0; text-align:center; padding:10px; cursor:pointer;" onclick="app.showTip('除濕機肚子裡的水', '除濕機利用機器內部的低溫冷凝管，將潮濕空氣冷卻，把空氣中的水蒸氣擠壓冷凝成水滴！')">
+            <div style="font-size:1.6rem;">💧</div>
+            <strong style="font-size:0.85rem; color:var(--primary);">除濕機的水箱</strong>
+            <div style="font-size:0.72rem; color:var(--text-muted);">點擊查看原理</div>
+          </div>
+        </div>
+
+        <p class="para-body">
+          難道汽水罐破洞滲漏了嗎？還是除濕機有自來水管道？這一切其實都是大自然中最神奇的隱形魔術師——<strong>「水蒸氣」</strong>在默默變身！
+        </p>
+
+        <div class="interactive-card" id="tip-display-box" style="background:var(--primary-light); border-left:4px solid var(--primary); min-height:56px;">
+          <strong style="color:var(--primary); font-size:0.86rem;">💡 探索提示：</strong>
+          <span id="tip-text" style="font-size:0.85rem; color:var(--text-main);">請點擊上方三張情境卡片，觸摸生活中的水態變化祕密！</span>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：pe-Ⅲ-1 觀察自然現象</span>
+          <span class="page-num-tag">第 3 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 4: WATER MOLECULES INTERACTIVE ================= -->
+      <section class="page-sheet page-right" data-page="4">
+        <div class="sheet-header">
+          <span>核心模組一：水循環與多變的水</span>
+          <span class="sheet-header-badge">互動模擬實驗</span>
+        </div>
+        <div class="sec-tag">1.2 水的變身秀</div>
+        <h2 class="title-h1">水的三態變化與能量轉移</h2>
+
+        <!-- Interactive Water State Simulator -->
+        <div class="interactive-card" style="margin-top:4px;">
+          <div class="card-label">
+            <span>🔬 觸控互動：點擊按鈕切換水的三態分子排列</span>
+          </div>
+
+          <!-- Molecular Canvas Simulator -->
+          <div style="position:relative; width:100%; height:150px; background:#0f172a; border-radius:10px; overflow:hidden; margin-bottom:10px;">
+            <canvas id="moleculeCanvas" width="500" height="150" style="width:100%; height:100%; display:block;"></canvas>
+            <div id="state-badge" style="position:absolute; top:8px; left:12px; background:rgba(2,132,199,0.85); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px;">
+              當前狀態：液態水（流動）
+            </div>
+            <div id="energy-badge" style="position:absolute; top:8px; right:12px; background:rgba(16,185,129,0.85); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px;">
+              常溫（25℃）
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+            <button class="btn-action" id="btn-state-solid" onclick="app.setWaterState('solid')">🧊 降溫：固態冰（放熱）</button>
+            <button class="btn-action active" id="btn-state-liquid" onclick="app.setWaterState('liquid')">💧 常溫：液態水</button>
+            <button class="btn-action" id="btn-state-gas" onclick="app.setWaterState('gas')">♨️ 加熱：氣態水蒸氣（吸熱）</button>
+          </div>
+
+          <div id="state-desc" style="margin-top:10px; font-size:0.84rem; color:var(--text-main); line-height:1.5;">
+            <strong>【液態水】</strong> 水分子自由流動、距離適中，具有一定體積但無固定形狀。
+          </div>
+        </div>
+
+        <p class="para-body" style="font-size:0.9rem; margin-top:8px;">
+          <strong>【黃金定律】</strong>：水蒸氣是<strong>無色、透明、肉眼完全看不見</strong>的氣體！只有當它遇冷「凝結」成億萬顆微小水珠時，才會被我們看見。
+        </p>
+
+        <div class="sheet-footer">
+          <span>課綱指標：INc-Ⅲ-7 水的三態變化</span>
+          <span class="page-num-tag">第 4 頁</span>
+        </div>
+      </section>
+      <!-- ================= PAGE 5: FLASK CLOUD LAB ================= -->
+      <section class="page-sheet page-left" data-page="5">
+        <div class="sheet-header">
+          <span>核心模組一：水循環與多變的水</span>
+          <span class="sheet-header-badge">動手探究實驗</span>
+        </div>
+        <div class="sec-tag">1.3 經典探究實驗</div>
+        <h2 class="title-h1">教室裡的「瓶中造霧」虛擬實驗室</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:8px;">
+          我們能否親手製造出一朵雲？請依照科學步驟，依序點擊下方 4 個按鈕進行探究：
+        </p>
+
+        <!-- Virtual Flask Experiment Card -->
+        <div class="card-experiment">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="color:#15803d; font-size:0.88rem;">🧪 實驗操作台（點擊依序執行）</strong>
+            <button class="btn-action" style="padding:4px 10px; font-size:0.75rem;" onclick="app.resetFlaskLab()">🔄 重新實驗</button>
+          </div>
+
+          <!-- Flask Simulation Graphic -->
+          <div style="position:relative; width:100%; height:160px; background:#0f172a; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            <!-- SVG Bottle -->
+            <svg id="flask-svg" width="180" height="150" viewBox="0 0 180 150">
+              <!-- Bottle Outline -->
+              <path id="flask-body" d="M75,20 L105,20 L105,45 L135,115 C140,128 130,140 115,140 L65,140 C50,140 40,128 45,115 L75,45 Z" fill="rgba(255,255,255,0.08)" stroke="#38bdf8" stroke-width="3" />
+              <!-- Water Level -->
+              <path id="flask-water" d="M48,120 C55,118 125,118 132,120 L125,138 L55,138 Z" fill="rgba(56, 189, 248, 0.4)" style="display:none;" />
+              <!-- Smoke Nuclei Particles -->
+              <g id="flask-smoke" style="display:none;">
+                <circle cx="80" cy="80" r="3" fill="#cbd5e1" opacity="0.6"/>
+                <circle cx="100" cy="90" r="4" fill="#cbd5e1" opacity="0.7"/>
+                <circle cx="90" cy="110" r="3.5" fill="#cbd5e1" opacity="0.8"/>
+                <circle cx="70" cy="100" r="4" fill="#cbd5e1" opacity="0.6"/>
+                <circle cx="110" cy="105" r="3" fill="#cbd5e1" opacity="0.7"/>
+              </g>
+              <!-- Ice on top -->
+              <rect id="flask-ice" x="70" y="10" width="40" height="15" rx="3" fill="#67e8f9" stroke="#fff" stroke-width="1.5" style="display:none;" />
+              <!-- Cloud/Fog layer -->
+              <ellipse id="flask-fog" cx="90" cy="85" rx="35" ry="25" fill="#ffffff" opacity="0" />
+            </svg>
+
+            <!-- Real-time Status Overlay -->
+            <div id="flask-status-tag" style="position:absolute; bottom:8px; left:12px; background:rgba(0,0,0,0.6); color:#fff; font-size:0.75rem; padding:2px 8px; border-radius:4px;">
+              等待步驟 1：注入溫水
+            </div>
+          </div>
+
+          <!-- Step Buttons -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+            <button class="btn-action" id="step1-btn" onclick="app.doFlaskStep(1)">① 注入溫水</button>
+            <button class="btn-action" id="step2-btn" onclick="app.doFlaskStep(2)">② 點線香（凝結核）</button>
+            <button class="btn-action" id="step3-btn" onclick="app.doFlaskStep(3)">③ 瓶口置放冰塊</button>
+            <button class="btn-action" id="step4-btn" onclick="app.doFlaskStep(4)">④ 擠壓/放開瓶身</button>
+          </div>
+
+          <!-- Lab Finding Note -->
+          <div id="flask-finding" style="font-size:0.82rem; color:#14532d; margin-top:8px; line-height:1.4;">
+            <strong>【探究重點】</strong> 水蒸氣凝結必須具備「降溫」與「凝結核」兩個關鍵條件！
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：tc-Ⅲ-1 探究活動問題察覺</span>
+          <span class="page-num-tag">第 5 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 6: MODULE 1 AI INTERACTION ================= -->
+      <section class="page-sheet page-right" data-page="6">
+        <div class="sheet-header">
+          <span>核心模組一：水循環與多變的水</span>
+          <span class="sheet-header-badge">AI 助理互動與迷思</span>
+        </div>
+        <div class="sec-tag">1.4 智慧探究</div>
+        <h2 class="title-h1">💡 AI 助理來提問：除濕機的造水魔法？</h2>
+
+        <!-- Interactive AI Thinking Prompt -->
+        <div class="interactive-card" style="margin-top:4px;">
+          <p style="font-size:0.88rem; line-height:1.6; margin-bottom:10px;">
+            小華好奇問爸爸：「除濕機是不是有造水魔法？如果把房間門窗用膠帶完全密封緊閉一個月，除濕機還能每天抽出一樣多的水嗎？為什麼？」
+          </p>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="btn-action" style="text-align:left; justify-content:flex-start;" onclick="app.submitAiAnswer('A')">
+              (A) 可以，因為除濕機本來就會自己製造水分子
+            </button>
+            <button class="btn-action" style="text-align:left; justify-content:flex-start;" onclick="app.submitAiAnswer('B')">
+              (B) 可以，只要插著電機器就能無限制運轉抽水
+            </button>
+            <button class="btn-action" style="text-align:left; justify-content:flex-start;" onclick="app.submitAiAnswer('C')">
+              (C) 不行，因為密閉房間水蒸氣有限，抽乾後就抽不出水
+            </button>
+          </div>
+
+          <!-- Dynamic AI Feedback Card -->
+          <div id="ai-answer-feedback" style="display:none; margin-top:10px; background:#fff; border:1px solid var(--primary); border-radius:8px; padding:10px; font-size:0.84rem; line-height:1.5;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Myth Buster Section -->
+        <div class="myth-box" style="margin-top:8px;">
+          <div class="myth-title">🤖 AI 迷思大破解：燒開水的白煙是水蒸氣嗎？</div>
+          <p style="font-size:0.82rem; line-height:1.5; color:var(--text-main); margin-bottom:6px;">
+            <strong>【破解】</strong>：大錯特錯！水蒸氣是無色透明肉眼看不見的！緊貼壺嘴 1 公分處透明的才是水蒸氣。你看到的白煙是水蒸氣遇冷已經<strong>「凝結成無數小水滴」</strong>囉！
+          </p>
+          <button class="btn-action" style="padding:4px 10px; font-size:0.75rem; border-color:#e11d48; color:#e11d48;" onclick="app.openAiDrawerWithPrompt('為什麼除濕機的水不能直接喝？')">
+            💬 點擊問 AI：除濕機的水能直接喝嗎？
+          </button>
+        </div>
+
+        <div class="sheet-footer">
+          <span>AI 導師互動回饋機制</span>
+          <span class="page-num-tag">第 6 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 7: MODULE 2 WEATHER MAPS ================= -->
+      <section class="page-sheet page-left" data-page="7">
+        <div class="sheet-header">
+          <span>核心模組二：解讀天空的密碼</span>
+          <span class="sheet-header-badge">大氣觀測與天氣圖</span>
+        </div>
+        <div class="sec-tag">2.1 氣象主播的藏寶圖</div>
+        <h2 class="title-h1">天氣圖的三大基本元素</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:8px;">
+          打開電視新聞，天氣圖上的神祕代號到底代表什麼？請<strong>點擊下方天氣元素</strong>，觸發動態氣流探測：
+        </p>
+
+        <!-- Weather Map Explorer Widget -->
+        <div class="interactive-card" style="padding:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:var(--primary); font-size:0.85rem;">🗺️ 東亞地面天氣圖探測器</strong>
+            <span id="map-target-status" class="sheet-header-badge">點擊下方按鈕觀測</span>
+          </div>
+
+          <!-- SVG Weather Map -->
+          <div style="position:relative; width:100%; height:160px; background:#1e293b; border-radius:10px; overflow:hidden;">
+            <svg id="weather-map-svg" width="100%" height="100%" viewBox="0 0 360 160">
+              <!-- Background Map Silhouette -->
+              <path d="M60,30 Q120,20 180,40 Q220,60 260,30 L280,70 Q240,110 200,120 L150,140 Q100,130 50,90 Z" fill="#334155" opacity="0.4" />
+              <!-- Taiwan Island -->
+              <ellipse cx="190" cy="95" rx="8" ry="16" fill="#10b981" opacity="0.9" />
+              <text x="202" y="100" fill="#fff" font-size="9" font-weight="bold">台灣</text>
+
+              <!-- Isobar Curves -->
+              <path class="isobar" d="M20,60 Q120,40 220,50 T340,70" fill="none" stroke="#94a3b8" stroke-width="1.5" />
+              <path class="isobar" d="M20,90 Q130,80 230,85 T340,110" fill="none" stroke="#94a3b8" stroke-width="1.5" />
+              <path class="isobar" d="M30,125 Q140,115 240,120 T340,140" fill="none" stroke="#94a3b8" stroke-width="1.5" />
+
+              <!-- High Pressure (H) -->
+              <g id="map-high-group" style="cursor:pointer;" onclick="app.inspectWeatherElement('H')">
+                <circle cx="100" cy="50" r="18" fill="rgba(2, 132, 199, 0.3)" stroke="#38bdf8" stroke-width="2" />
+                <text x="94" y="56" fill="#38bdf8" font-size="18" font-weight="900">H</text>
+                <text x="75" y="76" fill="#e2e8f0" font-size="9">高氣壓(1028)</text>
+              </g>
+
+              <!-- Low Pressure (L) -->
+              <g id="map-low-group" style="cursor:pointer;" onclick="app.inspectWeatherElement('L')">
+                <circle cx="280" cy="50" r="18" fill="rgba(239, 68, 68, 0.3)" stroke="#f87171" stroke-width="2" />
+                <text x="274" y="56" fill="#f87171" font-size="18" font-weight="900">L</text>
+                <text x="255" y="76" fill="#e2e8f0" font-size="9">低氣壓(996)</text>
+              </g>
+
+              <!-- Animated Air flow arrows -->
+              <g id="airflow-arrows" style="display:none;">
+                <!-- High: sinking arrows -->
+                <path d="M100,25 L100,40 M95,35 L100,40 L105,35" stroke="#38bdf8" stroke-width="2" />
+                <!-- Low: rising arrows -->
+                <path d="M280,65 L280,45 M275,50 L280,45 L285,50" stroke="#f87171" stroke-width="2" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
+            <button class="btn-action" onclick="app.inspectWeatherElement('H')">🔵 高氣壓 (H)</button>
+            <button class="btn-action" onclick="app.inspectWeatherElement('L')">🔴 低氣壓 (L)</button>
+            <button class="btn-action" onclick="app.toggleIsobarDensity()">〰️ 等壓線密度切換</button>
+          </div>
+
+          <div id="weather-element-desc" style="margin-top:8px; font-size:0.82rem; color:var(--text-main); line-height:1.5;">
+            請點擊上方按鈕，解讀大氣壓力的流動密碼！
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：INc-Ⅲ-8 氣溫氣壓風向風速觀測</span>
+          <span class="page-num-tag">第 7 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 8: MODULE 2 FRONTS ================= -->
+      <section class="page-sheet page-right" data-page="8">
+        <div class="sheet-header">
+          <span>核心模組二：解讀天空的密碼</span>
+          <span class="sheet-header-badge">鋒面系統大對決</span>
+        </div>
+        <div class="sec-tag">2.2 鋒面系統大交鋒</div>
+        <h2 class="title-h1">冷暖空氣的大碰撞</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:8px;">
+          當冷氣團遇上暖氣團，交界處會形成<strong>「鋒面」</strong>。請點擊切換三大鋒面系統：
+        </p>
+
+        <!-- Fronts Simulator Widget -->
+        <div class="interactive-card" style="padding:12px;">
+          <!-- Front Types Select -->
+          <div style="display:flex; justify-content:center; gap:6px; margin-bottom:10px;">
+            <button class="btn-action active" id="btn-front-cold" onclick="app.setFrontType('cold')">🔷 冷鋒過境</button>
+            <button class="btn-action" id="btn-front-warm" onclick="app.setFrontType('warm')">🔴 暖鋒過境</button>
+            <button class="btn-action" id="btn-front-stationary" onclick="app.setFrontType('stationary')">⚔️ 滯留鋒（梅雨）</button>
+          </div>
+
+          <!-- Front Cross Section Canvas/SVG -->
+          <div style="width:100%; height:140px; background:#0f172a; border-radius:10px; position:relative; overflow:hidden;">
+            <svg id="front-svg" width="100%" height="100%" viewBox="0 0 340 140">
+              <!-- Dynamic Front Content Injected by JS -->
+            </svg>
+            <div id="front-symbol-tag" style="position:absolute; top:8px; left:12px; background:rgba(2,132,199,0.85); color:#fff; font-size:0.75rem; padding:2px 8px; border-radius:4px; font-weight:bold;">
+              藍色鋸齒三角形：冷鋒
+            </div>
+          </div>
+
+          <!-- Front Features Info -->
+          <div id="front-desc-box" style="margin-top:10px; font-size:0.84rem; line-height:1.5;">
+            <strong>【冷鋒特性】</strong> 冷空氣主動推向暖空氣，如推土機將暖空氣強行抬升，帶來<strong>急促降雨、雷雨與氣溫驟降</strong>！
+          </div>
+        </div>
+
+        <div class="myth-box" style="margin-top:8px;">
+          <div class="myth-title">🤖 AI 迷思大破解：高氣壓的「高」代表很熱？</div>
+          <p style="font-size:0.82rem; line-height:1.4; color:var(--text-main);">
+            <strong>【破解】</strong>：高氣壓的「高」是指<strong>空氣壓力高（重量重）</strong>，不是溫度高！冬天的寒流就是來自西伯利亞超強大的「冷高壓」，冷到讓人發抖！
+          </p>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：INc-Ⅲ-8 鋒面預測天氣變化</span>
+          <span class="page-num-tag">第 8 頁</span>
+        </div>
+      </section>
+      <!-- ================= PAGE 9: MODULE 3 MEIYU ================= -->
+      <section class="page-sheet page-left" data-page="9">
+        <div class="sheet-header">
+          <span>核心模組三：台灣的特殊天氣</span>
+          <span class="sheet-header-badge">在地環境科學</span>
+        </div>
+        <div class="sec-tag">3.1 衣服為什麼曬不乾？</div>
+        <h2 class="title-h1">台灣獨特的「梅雨季」（5～6月）</h2>
+        <p class="para-body">
+          每年端午節前後，台灣常常連續一至兩週陰雨濛濛，陽台衣服三天不乾，甚至磁磚牆壁滲出小水珠，這就是著名的<strong>「梅雨季節」</strong>。
+        </p>
+
+        <!-- Meiyu Interactive Confrontation Card -->
+        <div class="interactive-card">
+          <div class="card-label">
+            <span>⚔️ 兩軍對峙：北方冷氣團 vs 南方暖濕西南氣流</span>
+          </div>
+          <div style="position:relative; width:100%; height:130px; background:#0f172a; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:space-around;">
+            <!-- North Cold Air -->
+            <div style="text-align:center; color:#38bdf8;">
+              <div style="font-size:1.8rem;">❄️</div>
+              <strong style="font-size:0.8rem;">北方冷氣團</strong>
+              <div style="font-size:0.7rem; color:#94a3b8;">漸弱的冷空氣</div>
+            </div>
+            <!-- Confrontation clash -->
+            <div style="text-align:center;">
+              <div style="font-size:1.5rem; animation: pulse 1.5s infinite;">⚡ 🌧️ ⚡</div>
+              <span style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; font-size:0.72rem; padding:2px 6px; border-radius:4px; font-weight:bold;">滯留鋒對峙中</span>
+            </div>
+            <!-- South Warm Air -->
+            <div style="text-align:center; color:#f87171;">
+              <div style="font-size:1.8rem;">🌊</div>
+              <strong style="font-size:0.8rem;">西南暖濕氣流</strong>
+              <div style="font-size:0.7rem; color:#94a3b8;">漸強的熱帶水氣</div>
+            </div>
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-main); margin-top:8px; line-height:1.5;">
+            <strong>【雙面刃影響】</strong>：梅雨是台灣僅次於颱風的最關鍵水資源補注來源；但伴隨雷雨胞的「短延時豪大雨」，也極易誘發山崩落石與低窪淹水。
+          </p>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：INc-Ⅲ-9 台灣常見天氣現象</span>
+          <span class="page-num-tag">第 9 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 10: MODULE 3 TYPHOON ANATOMY ================= -->
+      <section class="page-sheet page-right" data-page="10">
+        <div class="sheet-header">
+          <span>核心模組三：台灣的特殊天氣</span>
+          <span class="sheet-header-badge">熱帶巨獸解剖室</span>
+        </div>
+        <div class="sec-tag">3.2 海洋孕育的超級陀螺</div>
+        <h2 class="title-h1">認識颱風：內部大解剖</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:6px;">
+          廣闊熱帶海洋吸收陽光能量蒸發巨量水氣，旋轉增強為颱風。請<strong>點擊下方結構</strong>進行立體解剖：
+        </p>
+
+        <!-- Typhoon Interactive Anatomy Card -->
+        <div class="interactive-card" style="padding:10px;">
+          <div style="display:flex; justify-content:center; gap:6px; margin-bottom:8px;">
+            <button class="btn-action active" id="btn-typ-eye" onclick="app.inspectTyphoonZone('eye')">👁️ 颱風眼（中心）</button>
+            <button class="btn-action" id="btn-typ-wall" onclick="app.inspectTyphoonZone('wall')">🌪️ 眼牆（最暴烈）</button>
+            <button class="btn-action" id="btn-typ-bands" onclick="app.inspectTyphoonZone('bands')">🌀 螺旋雨帶</button>
+          </div>
+
+          <!-- Cross-section Graphic -->
+          <div style="position:relative; width:100%; height:130px; background:#0b1329; border-radius:10px; overflow:hidden;">
+            <svg id="typhoon-svg" width="100%" height="100%" viewBox="0 0 340 130">
+              <!-- Sea line -->
+              <line x1="0" y1="110" x2="340" y2="110" stroke="#0284c7" stroke-width="2"/>
+              <!-- Eye Zone -->
+              <rect x="150" y="10" width="40" height="100" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-dasharray="3,3" id="svg-zone-eye"/>
+              <text x="155" y="30" fill="#38bdf8" font-size="10" font-weight="bold">颱風眼</text>
+              <!-- Eyewall Left -->
+              <path d="M120,110 Q140,40 150,20 L150,110 Z" fill="rgba(239, 68, 68, 0.4)" stroke="#ef4444" stroke-width="1.5" id="svg-zone-wall-l"/>
+              <!-- Eyewall Right -->
+              <path d="M220,110 Q200,40 190,20 L190,110 Z" fill="rgba(239, 68, 68, 0.4)" stroke="#ef4444" stroke-width="1.5" id="svg-zone-wall-r"/>
+              <!-- Spiral Bands -->
+              <path d="M20,110 Q70,70 110,80" stroke="#94a3b8" stroke-width="3" fill="none"/>
+              <path d="M320,110 Q270,70 230,80" stroke="#94a3b8" stroke-width="3" fill="none"/>
+            </svg>
+            <div id="typ-status-pill" style="position:absolute; bottom:6px; right:10px; background:rgba(0,0,0,0.7); color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:4px;">
+              風速: 5 km/h ｜ 雨量: 0 mm
+            </div>
+          </div>
+
+          <!-- Anatomy Description -->
+          <div id="typ-desc-text" style="margin-top:8px; font-size:0.82rem; line-height:1.45;">
+            <strong>【颱風眼】</strong> 中心氣流微弱下沉，反而<strong>無風無雨、能見藍天</strong>！破除「颱風眼最危險」的常見迷思！
+          </div>
+        </div>
+
+        <div class="myth-box" style="margin-top:6px;">
+          <div class="myth-title">🤖 AI 迷思大破解：潛勢預報圈變大是颱風變胖？</div>
+          <p style="font-size:0.8rem; line-height:1.4; color:var(--text-main);">
+            <strong>【破解】</strong>：大錯！那個圈圈是<strong>「70% 機率誤差範圍圈」</strong>！時間越久預報誤差越大，圈圈變大代表「路徑的不確定性增加」，絕不是颱風像吹氣球一樣變大喔！
+          </p>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：INc-Ⅲ-9 颱風結構與預報</span>
+          <span class="page-num-tag">第 10 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 11: MODULE 4 RAIN & FLASH FLOOD ================= -->
+      <section class="page-sheet page-left" data-page="11">
+        <div class="sheet-header">
+          <span>核心模組四：防災總動員</span>
+          <span class="sheet-header-badge">氣象警報與溪流避險</span>
+        </div>
+        <div class="sec-tag">4.1 豪雨特報與溪流危機</div>
+        <h2 class="title-h1">警報分級與致命的「齊頭水」</h2>
+        <p class="para-body" style="font-size:0.88rem; margin-bottom:8px;">
+          你知道什麼時候是「大雨」，何時是「超大豪雨」嗎？
+        </p>
+
+        <!-- Rain Warning Table -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+          <div class="interactive-card" style="margin:0; padding:8px 10px; border-left:4px solid #facc15;">
+            <strong style="color:#ca8a04; font-size:0.82rem;">🟡 大雨 (Heavy Rain)</strong>
+            <div style="font-size:0.75rem; color:var(--text-main);">24h 累積 &ge; 80mm 或 1h &ge; 40mm</div>
+          </div>
+          <div class="interactive-card" style="margin:0; padding:8px 10px; border-left:4px solid #f97316;">
+            <strong style="color:#ea580c; font-size:0.82rem;">🟠 豪雨 (Extremely Heavy)</strong>
+            <div style="font-size:0.75rem; color:var(--text-main);">24h 累積 &ge; 200mm 或 3h &ge; 100mm</div>
+          </div>
+          <div class="interactive-card" style="margin:0; padding:8px 10px; border-left:4px solid #ef4444;">
+            <strong style="color:#dc2626; font-size:0.82rem;">🔴 大豪雨 (Torrential)</strong>
+            <div style="font-size:0.75rem; color:var(--text-main);">24h 累積 &ge; 350mm 或 3h &ge; 200mm</div>
+          </div>
+          <div class="interactive-card" style="margin:0; padding:8px 10px; border-left:4px solid #a855f7;">
+            <strong style="color:#9333ea; font-size:0.82rem;">🟣 超大豪雨 (Ext. Torrential)</strong>
+            <div style="font-size:0.75rem; color:var(--text-main);">24h 累積 &ge; 500mm (極度危險！)</div>
+          </div>
+        </div>
+
+        <!-- Flash Flood Simulator -->
+        <div class="card-experiment" style="border-color:#fca5a5; background:#fff1f2;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:#dc2626; font-size:0.85rem;">🚨 溪流齊頭水偵測警報器</strong>
+            <span id="flood-alert-badge" class="sheet-header-badge" style="background:#fee2e2; color:#ef4444;">河床安全中</span>
+          </div>
+          <p style="font-size:0.8rem; line-height:1.4; margin-bottom:8px;">
+            在下游戲水雖然出太陽，但上游山區降下暴雨時，數公尺高垂直水牆（齊頭水）衝到下游只要數十秒！請<strong>點擊下方三大生死警訊</strong>：
+          </p>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+            <button class="btn-action" id="btn-danger-1" onclick="app.triggerCreekAlert(1)">⚠️ 1. 溪水變混濁</button>
+            <button class="btn-action" id="btn-danger-2" onclick="app.triggerCreekAlert(2)">🪵 2. 漂來枯枝泡沫</button>
+            <button class="btn-action" id="btn-danger-3" onclick="app.triggerCreekAlert(3)">📏 3. 水位急速暴漲</button>
+          </div>
+          <div id="creek-alert-result" style="display:none; margin-top:8px; background:#ef4444; color:#fff; font-size:0.8rem; padding:8px; border-radius:6px; font-weight:bold;">
+            <!-- Alert message -->
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：ah-Ⅲ-1 察覺環境災害風險</span>
+          <span class="page-num-tag">第 11 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 12: MODULE 4 GO-BAG GAME ================= -->
+      <section class="page-sheet page-right" data-page="12">
+        <div class="sheet-header">
+          <span>核心模組四：防災總動員</span>
+          <span class="sheet-header-badge">防災實踐大考驗</span>
+        </div>
+        <div class="sec-tag">4.2 自主防災行動力</div>
+        <h2 class="title-h1">🎒 打包「緊急避難防災包」互動挑戰</h2>
+        <p class="para-body" style="font-size:0.86rem; margin-bottom:8px;">
+          颱風或豪雨來襲時，背包必須隨手可拿！請<strong>點擊正確的必備物資</strong>放入避難包（找出 6 個生存救命物品）：
+        </p>
+
+        <!-- Packing Game Interactive Card -->
+        <div class="interactive-card" style="padding:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="color:var(--primary); font-size:0.84rem;">🎒 避難包裝備度：<span id="bag-count">0</span> / 6</strong>
+            <button class="btn-action" style="padding:3px 8px; font-size:0.75rem;" onclick="app.resetGoBagGame()">🔄 重置背包</button>
+          </div>
+
+          <!-- Items Grid -->
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;" id="bag-items-grid">
+            <!-- Item cards -->
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '瓶裝飲用水', '維持生命最重要的水分！')">
+              <span style="font-size:1.3rem;">🍶</span> 瓶裝水
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '高熱量乾糧', '餅乾巧克力能補充緊急體力！')">
+              <span style="font-size:1.3rem;">🍪</span> 乾糧餅乾
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '求救哨子', '高音哨能省力穿透水聲呼救！')">
+              <span style="font-size:1.3rem;">📢</span> 求救哨子
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, false, '大型遊戲機', '太重且非生命維生用品！')">
+              <span style="font-size:1.3rem;">🎮</span> 遊戲機
+            </button>
+
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '手電筒與電池', '夜間停電指引生路！')">
+              <span style="font-size:1.3rem;">🔦</span> 手電筒
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '急救藥包', '外傷敷料與個人常備藥！')">
+              <span style="font-size:1.3rem;">🩹</span> 急救藥包
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, true, '輕便雨衣', '防雨保暖避免失溫！')">
+              <span style="font-size:1.3rem;">🧥</span> 輕便雨衣
+            </button>
+            <button class="btn-action" style="padding:6px; flex-direction:column; font-size:0.76rem;" onclick="app.toggleBagItem(this, false, '厚重百科全書', '書籍重量過重妨礙逃生！')">
+              <span style="font-size:1.3rem;">📖</span> 大字典
+            </button>
+          </div>
+
+          <div id="bag-feedback-msg" style="margin-top:8px; font-size:0.8rem; line-height:1.4; color:var(--text-main); min-height:24px;">
+            請點擊物品打包，挑戰防災小達人滿分！
+          </div>
+        </div>
+
+        <div class="myth-box" style="margin-top:6px;">
+          <div class="myth-title">🤖 AI 迷思大破解：放颱風假就是出門看電影？</div>
+          <p style="font-size:0.8rem; line-height:1.4; color:var(--text-main);">
+            <strong>【破解】</strong>：颱風假是「天然災害停止上班及上課」，唯一目的是<strong>留在家中避難</strong>！外出逛街面臨招牌吹落、磁磚雨與路樹壓毀極度危險！
+          </p>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：自-E-C2 防災素養實踐</span>
+          <span class="page-num-tag">第 12 頁</span>
+        </div>
+      </section>
+      <!-- ================= PAGE 13: QUIZ TIME ================= -->
+      <section class="page-sheet page-left" data-page="13">
+        <div class="sheet-header">
+          <span>單元核心概念雙向檢核</span>
+          <span class="sheet-header-badge">素養情境闖關</span>
+        </div>
+        <div class="sec-tag">即時能力診斷</div>
+        <h2 class="title-h1">🎯 氣象偵探實戰挑戰</h2>
+
+        <!-- Quiz Question 1 -->
+        <div class="interactive-card" style="padding:10px; margin-bottom:10px;">
+          <div style="font-size:0.84rem; font-weight:800; color:var(--primary); margin-bottom:4px;">
+            【第 1 題：人造霧實驗變因探究】
+          </div>
+          <p style="font-size:0.8rem; line-height:1.45; margin-bottom:6px;">
+            甲罐（溫水+冰塊）、乙罐（溫水+線香煙霧+冰塊）、丙罐（溫水+線香煙霧，無冰塊）。3分鐘後哪個罐子霧氣最濃密？
+          </p>
+          <div style="display:flex; flex-direction:column; gap:4px;" id="q1-options">
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(1, 'A')">
+              (A) 甲罐，因為沒有雜質干擾水分子結合
+            </button>
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(1, 'B')">
+              (B) 乙罐，因為線香提供凝結核且冰塊降溫冷卻
+            </button>
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(1, 'C')">
+              (C) 丙罐，因為室溫較高有利分子聚集成雨
+            </button>
+          </div>
+          <div id="q1-feedback" style="display:none; margin-top:6px; font-size:0.78rem; line-height:1.4; padding:6px 10px; border-radius:6px;"></div>
+        </div>
+
+        <!-- Quiz Question 2 -->
+        <div class="interactive-card" style="padding:10px;">
+          <div style="font-size:0.84rem; font-weight:800; color:var(--primary); margin-bottom:4px;">
+            【第 2 題：天氣圖判讀與登山決策】
+          </div>
+          <p style="font-size:0.8rem; line-height:1.45; margin-bottom:6px;">
+            週五天氣圖顯示一條「藍色實線+三角形尖銳鋸齒」正快速移向台灣，且等壓線非常緊密。週末要登山的小宇該如何建議？
+          </p>
+          <div style="display:flex; flex-direction:column; gap:4px;" id="q2-options">
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(2, 'A')">
+              (A) 是暖鋒，過境會溫暖晴朗，穿短袖登山
+            </button>
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(2, 'B')">
+              (B) 是冷鋒且等壓線密風強，會驟降溫降雨，建議取消登山
+            </button>
+            <button class="btn-action" style="font-size:0.78rem; text-align:left; justify-content:flex-start;" onclick="app.checkQuiz(2, 'C')">
+              (C) 是滯留鋒，只會吹微風，不必理會
+            </button>
+          </div>
+          <div id="q2-feedback" style="display:none; margin-top:6px; font-size:0.78rem; line-height:1.4; padding:6px 10px; border-radius:6px;"></div>
+        </div>
+
+        <div class="sheet-footer">
+          <span>課綱指標：pa-Ⅲ-1 依據資料推論解釋</span>
+          <span class="page-num-tag">第 13 頁</span>
+        </div>
+      </section>
+
+      <!-- ================= PAGE 14: EXTENSION READING ================= -->
+      <section class="page-sheet page-right" data-page="14">
+        <div class="sheet-header">
+          <span>延伸閱讀：科學科技新視野</span>
+          <span class="sheet-header-badge">台灣之光氣象衛星</span>
+        </div>
+        <div class="sec-tag">自主航太科技</div>
+        <h2 class="title-h1">太空中巡弋的「氣象千里眼」</h2>
+        <h3 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin-bottom:8px;">
+          ——台灣自製獵風者氣象衛星（TRITON）
+        </h3>
+        <p class="para-body" style="font-size:0.86rem; line-height:1.6; margin-bottom:8px;">
+          2023年10月，台灣第一顆自主研發達 82% 關鍵零組件的<strong>「獵風者衛星」</strong>成功升空！它如何穿透厚厚的烏雲，測量海面上颳起多大的風浪呢？
+        </p>
+
+        <!-- GNSS-R Tech Card -->
+        <div class="interactive-card" style="padding:10px; margin-bottom:8px;">
+          <strong style="color:var(--primary); font-size:0.82rem;">📡 GNSS-R 海面風速反射黑科技</strong>
+          <p style="font-size:0.78rem; line-height:1.45; color:var(--text-main); margin-top:4px;">
+            太空中的 GPS 電波穿透雲層照射到海面。海面平靜時反射波平整；當颱風掀起狂風巨浪時，反射波被打碎成雜亂碎斑。獵風者就像一隻「順風耳」，藉由反射波分析海面風速，大幅提升台灣颱風預報精準度！
+          </p>
+        </div>
+
+        <!-- Completion Certificate Badge -->
+        <div style="background:linear-gradient(135deg, rgba(2,132,199,0.1), rgba(16,185,129,0.1)); border:1.5px solid var(--success); border-radius:10px; padding:12px; text-align:center;">
+          <div style="font-size:1.8rem; margin-bottom:4px;">🏅</div>
+          <strong style="color:#047857; font-size:0.92rem;">恭喜完成本單元數位學習！</strong>
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-top:3px;">
+            已完整掌握水循環、天氣圖解讀、梅雨颱風結構與防災整備四大關鍵素養！
+          </div>
+          <button class="btn-action" style="margin-top:8px; background:var(--success); color:#fff; border-color:var(--success);" onclick="app.goToPage(1)">
+            🔄 回到封面重溫探索
+          </button>
+        </div>
+
+        <div class="sheet-footer">
+          <span>科技與生活關懷素養</span>
+          <span class="page-num-tag">第 14 頁</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation & Progress Bar -->
+  <footer class="bottom-navbar">
+    <div style="font-size:0.85rem; font-weight:700; color:#94a3b8;" id="page-display-label">
+      第 1 頁 / 共 14 頁
+    </div>
+    <div class="progress-wrapper">
+      <input type="range" class="page-range-input" id="page-range" min="1" max="14" value="1" step="1">
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="nav-btn" onclick="app.prevPage()">‹ 上一頁</button>
+      <button class="nav-btn" onclick="app.nextPage()">下一頁 ›</button>
+    </div>
+  </footer>
+
+  <!-- Floating AI Assistant Button -->
+  <button class="floating-ai-trigger" id="btn-floating-ai" onclick="app.toggleAiDrawer()">
+    <span>🤖</span>
+    <span>小天 AI 助教</span>
+  </button>
+
+  <!-- AI Tutor Modal Drawer -->
+  <aside class="ai-modal-drawer" id="ai-drawer">
+    <div class="ai-drawer-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.3rem;">🤖</span>
+        <span>小天 AI 氣象助教</span>
+      </div>
+      <button style="background:transparent; border:none; color:#fff; font-size:1.2rem; cursor:pointer;" onclick="app.toggleAiDrawer()">✕</button>
+    </div>
+    <div class="ai-drawer-tabs">
+      <button class="ai-tab-btn active" onclick="app.switchAiTab('guided')">💡 課堂引導</button>
+      <button class="ai-tab-btn" onclick="app.switchAiTab('myths')">🔍 迷思搜查</button>
+      <button class="ai-tab-btn" onclick="app.switchAiTab('chat')">💬 自由發問</button>
+    </div>
+    <div class="ai-chat-content" id="ai-tab-content">
+      <!-- Injected via JavaScript -->
+    </div>
+  </aside>
+
+  <!-- Table of Contents Modal Backdrop -->
+  <div class="toc-backdrop" id="toc-modal" onclick="app.closeTocOnBackdrop(event)">
+    <div class="toc-content-pane">
+      <div class="toc-header">
+        <span>📖 章節目錄速查</span>
+        <button style="background:transparent; border:none; font-size:1.3rem; cursor:pointer; color:var(--text-main);" onclick="app.toggleToc()">✕</button>
+      </div>
+      <div class="toc-scroll-list" id="toc-list-container">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+  <!-- Client-Side JavaScript Logic -->
+  <script>
+    const app = {
+      currentPage: 1,
+      totalPages: 14,
+      viewMode: 'spread',
+      audioEnabled: true,
+      currentTheme: 'light',
+      fontScaleIndex: 1,
+      fontScales: ['15px', '16px', '18px'],
+      audioCtx: null,
+      waterState: 'liquid',
+      molecules: [],
+      flaskStepsDone: [false, false, false, false],
+      isBottleCompressed: false,
+      bagItemsSelected: 0,
+
+      init() {
+        this.renderTOC();
+        this.initMolecules();
+        this.initAudio();
+        this.initFronts();
+        this.initTouchGestures();
+        this.initKeyboard();
+        this.updateView();
+        this.switchAiTab('guided');
+
+        window.addEventListener('resize', () => {
+          if (window.innerWidth <= 960 && this.viewMode === 'spread') {
+            this.viewMode = 'single';
+            document.getElementById('btn-view-mode').textContent = '📄 單頁模式';
+            document.getElementById('book-frame').classList.add('single-mode');
+            this.updateView();
+          }
+        });
+
+        if (window.innerWidth <= 960) {
+          this.viewMode = 'single';
+          document.getElementById('btn-view-mode').textContent = '📄 單頁模式';
+          document.getElementById('book-frame').classList.add('single-mode');
+          this.updateView();
+        }
+
+        document.getElementById('page-range').addEventListener('input', (e) => {
+          this.goToPage(parseInt(e.target.value));
+        });
+        document.getElementById('btn-view-mode').addEventListener('click', () => this.toggleViewMode());
+        document.getElementById('btn-theme-toggle').addEventListener('click', () => this.toggleTheme());
+        document.getElementById('btn-font-toggle').addEventListener('click', () => this.toggleFontScale());
+        document.getElementById('btn-audio').addEventListener('click', () => this.toggleAudio());
+        document.getElementById('btn-toc').addEventListener('click', () => this.toggleToc());
+        document.getElementById('btn-prev').addEventListener('click', () => this.prevPage());
+        document.getElementById('btn-next').addEventListener('click', () => this.nextPage());
+      },
+
+      initAudio() {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.audioCtx = new AudioContext();
+        } catch(e) {}
+      },
+
+      playFlipSound() {
+        if (!this.audioEnabled || !this.audioCtx) return;
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+        try {
+          const bufferSize = this.audioCtx.sampleRate * 0.12;
+          const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+          }
+          const noise = this.audioCtx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = this.audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+          const gain = this.audioCtx.createGain();
+          gain.gain.setValueAtTime(0.25, this.audioCtx.currentTime);
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.audioCtx.destination);
+          noise.start();
+        } catch(e){}
+      },
+
+      playChimeSound(isSuccess = true) {
+        if (!this.audioEnabled || !this.audioCtx) return;
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+        try {
+          const osc = this.audioCtx.createOscillator();
+          const gain = this.audioCtx.createGain();
+          osc.type = 'sine';
+          if (isSuccess) {
+            osc.frequency.setValueAtTime(523.25, this.audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, this.audioCtx.currentTime + 0.08);
+          } else {
+            osc.frequency.setValueAtTime(280, this.audioCtx.currentTime);
+            osc.frequency.setValueAtTime(200, this.audioCtx.currentTime + 0.1);
+          }
+          gain.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.22);
+          osc.connect(gain);
+          gain.connect(this.audioCtx.destination);
+          osc.start();
+          osc.stop(this.audioCtx.currentTime + 0.22);
+        } catch(e){}
+      },
+
+      goToPage(page) {
+        if (page < 1) page = 1;
+        if (page > this.totalPages) page = this.totalPages;
+        this.currentPage = page;
+        this.playFlipSound();
+        this.updateView();
+      },
+
+      nextPage() {
+        const step = (this.viewMode === 'spread') ? 2 : 1;
+        if (this.currentPage + step <= this.totalPages) {
+          this.goToPage(this.currentPage + step);
+        } else if (this.currentPage < this.totalPages) {
+          this.goToPage(this.totalPages);
+        }
+      },
+
+      prevPage() {
+        const step = (this.viewMode === 'spread') ? 2 : 1;
+        if (this.currentPage - step >= 1) {
+          this.goToPage(this.currentPage - step);
+        } else if (this.currentPage > 1) {
+          this.goToPage(1);
+        }
+      },
+
+      updateView() {
+        const sheets = document.querySelectorAll('.page-sheet');
+        sheets.forEach(s => s.classList.remove('active'));
+
+        let p1 = this.currentPage;
+        let p2 = null;
+
+        if (this.viewMode === 'spread') {
+          if (p1 % 2 === 0) p1 = p1 - 1;
+          p2 = p1 + 1;
+          const s1 = document.querySelector(`.page-sheet[data-page="${p1}"]`);
+          const s2 = p2 <= this.totalPages ? document.querySelector(`.page-sheet[data-page="${p2}"]`) : null;
+          if (s1) s1.classList.add('active');
+          if (s2) s2.classList.add('active');
+          document.getElementById('page-display-label').textContent = `第 ${p1} - ${p2} 頁 / 共 ${this.totalPages} 頁`;
+          document.getElementById('page-range').value = p1;
+        } else {
+          const s1 = document.querySelector(`.page-sheet[data-page="${p1}"]`);
+          if (s1) s1.classList.add('active');
+          document.getElementById('page-display-label').textContent = `第 ${p1} 頁 / 共 ${this.totalPages} 頁`;
+          document.getElementById('page-range').value = p1;
+        }
+
+        document.querySelectorAll('.toc-entry').forEach(el => {
+          const target = parseInt(el.dataset.target);
+          if (target === p1 || (p2 && target === p2)) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+      },
+
+      toggleViewMode() {
+        const frame = document.getElementById('book-frame');
+        const btn = document.getElementById('btn-view-mode');
+        if (this.viewMode === 'spread') {
+          this.viewMode = 'single';
+          frame.classList.add('single-mode');
+          btn.textContent = '📄 單頁模式';
+        } else {
+          this.viewMode = 'spread';
+          frame.classList.remove('single-mode');
+          btn.textContent = '📖 雙頁模式';
+        }
+        this.updateView();
+      },
+
+      toggleTheme() {
+        const body = document.body;
+        if (this.currentTheme === 'light') {
+          this.currentTheme = 'sepia';
+          body.setAttribute('data-theme', 'sepia');
+          document.getElementById('btn-theme-toggle').textContent = '📜 羊皮紙';
+        } else if (this.currentTheme === 'sepia') {
+          this.currentTheme = 'dark';
+          body.setAttribute('data-theme', 'dark');
+          document.getElementById('btn-theme-toggle').textContent = '🌙 深色';
+        } else {
+          this.currentTheme = 'light';
+          body.removeAttribute('data-theme');
+          document.getElementById('btn-theme-toggle').textContent = '☀️ 白晝';
+        }
+      },
+
+      toggleFontScale() {
+        this.fontScaleIndex = (this.fontScaleIndex + 1) % this.fontScales.length;
+        document.documentElement.style.setProperty('--font-scale', this.fontScales[this.fontScaleIndex]);
+        document.getElementById('btn-font-toggle').textContent = `🔤 字級: ${['小', '中', '大'][this.fontScaleIndex]}`;
+      },
+
+      toggleAudio() {
+        this.audioEnabled = !this.audioEnabled;
+        document.getElementById('btn-audio').textContent = this.audioEnabled ? '🔊 音效: 開' : '🔇 音效: 關';
+      },
+
+      initKeyboard() {
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'PageDown') this.nextPage();
+          else if (e.key === 'ArrowLeft' || e.key === 'PageUp') this.prevPage();
+        });
+      },
+
+      initTouchGestures() {
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const stage = document.querySelector('.book-stage');
+        stage.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        stage.addEventListener('touchend', (e) => {
+          const diffX = e.changedTouches[0].screenX - touchStartX;
+          const diffY = e.changedTouches[0].screenY - touchStartY;
+          if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+            if (diffX < 0) this.nextPage();
+            else this.prevPage();
+          }
+        }, { passive: true });
+      },
+      renderTOC() {
+        const chapters = [
+          { title: '封面：天空的魔法密碼', page: 1, desc: '教科書封面與導言' },
+          { title: '目錄與全書學習地圖', page: 2, desc: '四大學習模組架構' },
+          { title: '1.1 神祕水滴從哪來？', page: 3, desc: '生活中的冷凝奇蹟' },
+          { title: '1.2 水的三態變化模擬', page: 4, desc: '水分子排列與吸熱/放熱' },
+          { title: '1.3 瓶中造霧虛擬實驗', page: 5, desc: '動手製造一朵雲' },
+          { title: '1.4 AI 提問：除濕機思考題', page: 6, desc: '除濕機魔法與白煙迷思' },
+          { title: '2.1 天氣圖三大元素', page: 7, desc: '等壓線、高壓H與低壓L' },
+          { title: '2.2 鋒面系統大對決', page: 8, desc: '冷鋒、暖鋒與滯留鋒' },
+          { title: '3.1 台灣梅雨季節', page: 9, desc: '滯留鋒兩軍對峙' },
+          { title: '3.2 颱風立體大解剖', page: 10, desc: '颱風眼、眼牆與潛勢圈' },
+          { title: '4.1 豪雨特報與齊頭水', page: 11, desc: '雨量分級與山洪警訊' },
+          { title: '4.2 防災包打包大考驗', page: 12, desc: '救命六大必備物資' },
+          { title: '核心概念雙向素養檢核', page: 13, desc: '人造霧與天氣圖實戰題' },
+          { title: '延伸閱讀：獵風者衛星', page: 14, desc: '台灣自主太空氣象黑科技' }
+        ];
+
+        const container = document.getElementById('toc-list-container');
+        container.innerHTML = chapters.map(c => `
+          <div class="toc-entry" data-target="${c.page}" onclick="app.goToPage(${c.page}); app.toggleToc();">
+            <div>
+              <div style="font-size:0.88rem;">${c.title}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${c.desc}</div>
+            </div>
+            <span class="sheet-header-badge">P.${c.page}</span>
+          </div>
+        `).join('');
+      },
+
+      toggleToc() {
+        document.getElementById('toc-modal').classList.toggle('open');
+      },
+
+      closeTocOnBackdrop(e) {
+        if (e.target.id === 'toc-modal') this.toggleToc();
+      },
+
+      showTip(title, msg) {
+        this.playChimeSound(true);
+        const box = document.getElementById('tip-display-box');
+        const text = document.getElementById('tip-text');
+        text.innerHTML = `<strong>【${title}】</strong> ${msg}`;
+      },
+
+      initMolecules() {
+        const canvas = document.getElementById('moleculeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        this.molecules = [];
+        for (let i = 0; i < 28; i++) {
+          this.molecules.push({
+            x: Math.random() * 460 + 20,
+            y: Math.random() * 110 + 20,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
+            r: 7
+          });
+        }
+
+        const render = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (this.waterState === 'solid') {
+            const cols = 7;
+            const rows = 4;
+            let idx = 0;
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                if (idx < this.molecules.length) {
+                  const baseX = 100 + c * 48;
+                  const baseY = 25 + r * 32;
+                  const vibX = (Math.random() - 0.5) * 1.2;
+                  const vibY = (Math.random() - 0.5) * 1.2;
+                  ctx.fillStyle = '#67e8f9';
+                  ctx.beginPath();
+                  ctx.arc(baseX + vibX, baseY + vibY, 7, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                  ctx.stroke();
+                  idx++;
+                }
+              }
+            }
+          } else {
+            this.molecules.forEach(m => {
+              if (this.waterState === 'liquid') {
+                m.x += m.vx * 0.8;
+                m.y += m.vy * 0.8;
+                if (m.y < 70) m.vy += 0.05;
+                if (m.y > 135) { m.y = 135; m.vy = -m.vy * 0.5; }
+                if (m.x < 15 || m.x > 485) m.vx = -m.vx;
+                ctx.fillStyle = '#38bdf8';
+              } else if (this.waterState === 'gas') {
+                m.x += m.vx * 3.5;
+                m.y += m.vy * 3.5;
+                if (m.x < 15 || m.x > 485) m.vx = -m.vx;
+                if (m.y < 15 || m.y > 135) m.vy = -m.vy;
+                ctx.fillStyle = 'rgba(241, 245, 249, 0.85)';
+              }
+              ctx.beginPath();
+              ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          }
+          requestAnimationFrame(render);
+        };
+        requestAnimationFrame(render);
+      },
+
+      setWaterState(state) {
+        this.waterState = state;
+        this.playChimeSound(true);
+        const bSolid = document.getElementById('btn-state-solid');
+        const bLiquid = document.getElementById('btn-state-liquid');
+        const bGas = document.getElementById('btn-state-gas');
+        const badge = document.getElementById('state-badge');
+        const eBadge = document.getElementById('energy-badge');
+        const desc = document.getElementById('state-desc');
+        [bSolid, bLiquid, bGas].forEach(b => b.classList.remove('active'));
+
+        if (state === 'solid') {
+          bSolid.classList.add('active');
+          badge.textContent = '當前狀態：固態冰（晶格振動）';
+          badge.style.background = 'rgba(14, 165, 233, 0.9)';
+          eBadge.textContent = '低溫：0℃ 以下（放熱凝固）';
+          eBadge.style.background = '#0284c7';
+          desc.innerHTML = '<strong>【固態冰】</strong> 水分子規則排列成堅固六角晶格，僅能原地微幅振動，具有固定形狀與體積。';
+        } else if (state === 'liquid') {
+          bLiquid.classList.add('active');
+          badge.textContent = '當前狀態：液態水（流動性）';
+          badge.style.background = 'rgba(2, 132, 199, 0.85)';
+          eBadge.textContent = '常溫：25℃';
+          eBadge.style.background = '#10b981';
+          desc.innerHTML = '<strong>【液態水】</strong> 水分子自由流動、距離適中，具有固定體積但隨容器改變形狀。';
+        } else if (state === 'gas') {
+          bGas.classList.add('active');
+          badge.textContent = '當前狀態：氣態水蒸氣（高速擴散）';
+          badge.style.background = 'rgba(239, 68, 68, 0.85)';
+          eBadge.textContent = '受熱：100℃（吸熱蒸發）';
+          eBadge.style.background = '#ef4444';
+          desc.innerHTML = '<strong>【氣態水蒸氣】</strong> 水分子吸收熱量後能量巨大，以極高速度自由穿梭擴散，<strong>無色透明肉眼看不見</strong>！';
+        }
+      },
+
+      doFlaskStep(step) {
+        this.playChimeSound(true);
+        const status = document.getElementById('flask-status-tag');
+        const water = document.getElementById('flask-water');
+        const smoke = document.getElementById('flask-smoke');
+        const ice = document.getElementById('flask-ice');
+        const fog = document.getElementById('flask-fog');
+        const finding = document.getElementById('flask-finding');
+
+        if (step === 1) {
+          this.flaskStepsDone[0] = true;
+          water.style.display = 'block';
+          status.textContent = '步驟 1 完成：瓶內已注入溫水，產生潮濕水蒸氣';
+          document.getElementById('step1-btn').classList.add('active');
+        } else if (step === 2) {
+          if (!this.flaskStepsDone[0]) { alert('請先點選第 ① 步注入溫水！'); return; }
+          this.flaskStepsDone[1] = true;
+          smoke.style.display = 'block';
+          status.textContent = '步驟 2 完成：線香煙霧提供大量微粒（凝結核）！';
+          document.getElementById('step2-btn').classList.add('active');
+        } else if (step === 3) {
+          if (!this.flaskStepsDone[1]) { alert('請先點選第 ② 步點燃線香！'); return; }
+          this.flaskStepsDone[2] = true;
+          ice.style.display = 'block';
+          status.textContent = '步驟 3 完成：瓶口放置冰塊，上方空氣急速降溫！';
+          document.getElementById('step3-btn').classList.add('active');
+        } else if (step === 4) {
+          if (!this.flaskStepsDone[2]) { alert('請先完成前 3 個實驗步驟！'); return; }
+          this.flaskStepsDone[3] = true;
+          this.isBottleCompressed = !this.isBottleCompressed;
+          if (this.isBottleCompressed) {
+            fog.style.transition = 'opacity 0.2s';
+            fog.setAttribute('opacity', '0.15');
+            status.textContent = '擠壓瓶身（加壓升溫）：小水滴蒸發，白霧變淡！';
+          } else {
+            fog.style.transition = 'opacity 0.3s';
+            fog.setAttribute('opacity', '0.85');
+            status.textContent = '放開瓶身（減壓膨脹降溫）：瞬間湧現濃白迷霧！';
+            finding.innerHTML = '🎉 <strong>【探究大成功！】</strong> 水蒸氣附著在線香微粒（凝結核）上，遇冷放熱凝結成數億顆小水滴，形成了瓶中的雲霧！';
+          }
+          document.getElementById('step4-btn').classList.add('active');
+        }
+      },
+
+      resetFlaskLab() {
+        this.flaskStepsDone = [false, false, false, false];
+        this.isBottleCompressed = false;
+        document.getElementById('flask-water').style.display = 'none';
+        document.getElementById('flask-smoke').style.display = 'none';
+        document.getElementById('flask-ice').style.display = 'none';
+        document.getElementById('flask-fog').setAttribute('opacity', '0');
+        document.getElementById('flask-status-tag').textContent = '等待步驟 1：注入溫水';
+        ['step1-btn','step2-btn','step3-btn','step4-btn'].forEach(id => document.getElementById(id).classList.remove('active'));
+        document.getElementById('flask-finding').innerHTML = '<strong>【探究重點】</strong> 水蒸氣凝結必須具備「降溫」與「凝結核」兩個關鍵條件！';
+      },
+
+      submitAiAnswer(choice) {
+        const box = document.getElementById('ai-answer-feedback');
+        box.style.display = 'block';
+        if (choice === 'A') {
+          this.playChimeSound(false);
+          box.style.borderColor = '#ef4444';
+          box.style.background = '#fff1f2';
+          box.innerHTML = '🤖 <strong>AI 引導回饋：</strong>「停下來想一想喔！科學上物質是不會憑空創造的（質量守恆）。除濕機內部沒有造水化工廠，它只是把空氣中原本的水蒸氣遇冷凝結而已。如果房間完全密封，水蒸氣抽乾後就再也抽不出水囉！」';
+        } else if (choice === 'B') {
+          this.playChimeSound(false);
+          box.style.borderColor = '#f59e0b';
+          box.style.background = '#fffbeb';
+          box.innerHTML = '🤖 <strong>AI 引導回饋：</strong>「你的敏銳度很棒，知道水來自空氣！但關鍵是：『房間門窗緊閉了一個月』。沒有外界水氣補充，室內空氣變得極度乾燥時，除濕機出水量就會大幅減少，最後根本抽不出水囉！」';
+        } else if (choice === 'C') {
+          this.playChimeSound(true);
+          box.style.borderColor = '#10b981';
+          box.style.background = '#f0fdf4';
+          box.innerHTML = '🌟 <strong>AI 引導回饋：</strong>「太厲害了！完全正確！除濕機本質就是一台『冷凝集水機』。密閉房間內的水蒸氣總量有限，抽乾後就無法再出水。這告訴我們開除濕機一定要關緊門窗，才不會白白幫戶外除濕喔！」';
+        }
+      },
+      inspectWeatherElement(type) {
+        this.playChimeSound(true);
+        const desc = document.getElementById('weather-element-desc');
+        const arrows = document.getElementById('airflow-arrows');
+        const status = document.getElementById('map-target-status');
+
+        if (type === 'H') {
+          arrows.style.display = 'block';
+          status.textContent = '觀測目標：高氣壓 (H)';
+          status.style.background = 'rgba(2, 132, 199, 0.2)';
+          status.style.color = '#0284c7';
+          desc.innerHTML = '🔵 <strong>【高氣壓 High】</strong> 中心氣壓高於四周。高空氣流緩慢<strong>向下沉降</strong>，下沉空氣增溫使水滴蒸發不易成雲，因此高壓籠罩時通常<strong>晴朗乾燥、雲量極少</strong>！';
+        } else if (type === 'L') {
+          arrows.style.display = 'block';
+          status.textContent = '觀測目標：低氣壓 (L)';
+          status.style.background = 'rgba(239, 68, 68, 0.2)';
+          status.style.color = '#ef4444';
+          desc.innerHTML = '🔴 <strong>【低氣壓 Low】</strong> 中心氣壓低於四周。四周空氣向中心匯聚並劇烈<strong>向上爬升</strong>，上升空氣冷卻使水氣大量凝結成厚雲，因此低氣壓常帶來<strong>陰雨連綿或狂風暴雨</strong>！';
+        }
+      },
+
+      toggleIsobarDensity() {
+        this.playChimeSound(true);
+        const lines = document.querySelectorAll('.isobar');
+        const desc = document.getElementById('weather-element-desc');
+        const isDense = lines[0].getAttribute('stroke-width') === '3';
+        if (!isDense) {
+          lines.forEach(l => { l.setAttribute('stroke-width', '3'); l.setAttribute('stroke', '#38bdf8'); });
+          desc.innerHTML = '〰️ <strong>【等壓線密集＝強風】</strong> 等壓線越密集，代表氣壓落差大、氣流衝力強，當地<strong>風速越強勁</strong>！';
+        } else {
+          lines.forEach(l => { l.setAttribute('stroke-width', '1.5'); l.setAttribute('stroke', '#94a3b8'); });
+          desc.innerHTML = '〰️ <strong>【等壓線稀疏＝微風】</strong> 等壓線越稀疏，代表兩地氣壓差異小，當地<strong>風力和緩平靜</strong>。';
+        }
+      },
+
+      initFronts() {
+        this.setFrontType('cold');
+      },
+
+      setFrontType(type) {
+        this.playChimeSound(true);
+        const svg = document.getElementById('front-svg');
+        const tag = document.getElementById('front-symbol-tag');
+        const desc = document.getElementById('front-desc-box');
+        ['btn-front-cold','btn-front-warm','btn-front-stationary'].forEach(id => document.getElementById(id).classList.remove('active'));
+
+        if (type === 'cold') {
+          document.getElementById('btn-front-cold').classList.add('active');
+          tag.textContent = '藍色鋸齒三角形：冷鋒過境';
+          tag.style.background = '#0284c7';
+          desc.innerHTML = '<strong>【冷鋒特性】</strong> 強冷空氣如推土機強勢插入暖空氣下方，將輕暖空氣急劇抬升，形成高聳雷雨雲，帶來<strong>短暫強降雨、強陣風與氣溫暴跌</strong>！';
+          svg.innerHTML = `
+            <line x1="0" y1="120" x2="340" y2="120" stroke="#64748b" stroke-width="2"/>
+            <path d="M0,120 L160,120 L130,50 L0,20 Z" fill="rgba(56, 189, 248, 0.4)" stroke="#0284c7" stroke-width="2"/>
+            <text x="30" y="80" fill="#38bdf8" font-size="12" font-weight="bold">強冷空氣推擠 ➔</text>
+            <path d="M160,120 Q220,90 320,60" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="4,4"/>
+            <text x="210" y="85" fill="#f87171" font-size="12" font-weight="bold">暖空氣被迫爬升 ⤴</text>
+            <ellipse cx="160" cy="40" rx="35" ry="18" fill="#cbd5e1"/>
+            <line x1="145" y1="65" x2="140" y2="95" stroke="#38bdf8" stroke-width="2"/>
+            <line x1="160" y1="65" x2="155" y2="95" stroke="#38bdf8" stroke-width="2"/>
+            <line x1="175" y1="65" x2="170" y2="95" stroke="#38bdf8" stroke-width="2"/>
+          `;
+        } else if (type === 'warm') {
+          document.getElementById('btn-front-warm').classList.add('active');
+          tag.textContent = '紅色半圓形：暖鋒過境';
+          tag.style.background = '#dc2626';
+          desc.innerHTML = '<strong>【暖鋒特性】</strong> 輕暖空氣主動沿冷空氣斜面緩緩爬升，形成寬廣層狀雲，帶來<strong>連續性綿綿毛毛雨</strong>，過境後氣溫回升。';
+          svg.innerHTML = `
+            <line x1="0" y1="120" x2="340" y2="120" stroke="#64748b" stroke-width="2"/>
+            <path d="M140,120 L340,120 L340,50 L140,120 Z" fill="rgba(56, 189, 248, 0.25)" stroke="#0284c7" stroke-width="2"/>
+            <text x="240" y="95" fill="#38bdf8" font-size="11">冷空氣退後</text>
+            <path d="M0,110 L140,110 L280,45" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+            <text x="30" y="80" fill="#ef4444" font-size="12" font-weight="bold">暖空氣爬升 ➔</text>
+            <ellipse cx="230" cy="35" rx="55" ry="14" fill="#94a3b8"/>
+            <line x1="210" y1="52" x2="208" y2="75" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <line x1="230" y1="52" x2="228" y2="75" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <line x1="250" y1="52" x2="248" y2="75" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="2,2"/>
+          `;
+        } else if (type === 'stationary') {
+          document.getElementById('btn-front-stationary').classList.add('active');
+          tag.textContent = '藍紅相間：滯留鋒（梅雨對峙）';
+          tag.style.background = '#7c3aed';
+          desc.innerHTML = '<strong>【滯留鋒特性】</strong> 冷暖兩大氣團勢力旗鼓相當、互不相讓，在台灣附近盤旋徘徊，帶來<strong>連續多日的綿綿陰雨與強對流豪雨</strong>！';
+          svg.innerHTML = `
+            <line x1="0" y1="120" x2="340" y2="120" stroke="#64748b" stroke-width="2"/>
+            <rect x="0" y="50" width="160" height="70" fill="rgba(56, 189, 248, 0.3)"/>
+            <text x="25" y="85" fill="#38bdf8" font-size="12" font-weight="bold">北方冷氣團 ➔</text>
+            <rect x="180" y="50" width="160" height="70" fill="rgba(239, 68, 68, 0.3)"/>
+            <text x="205" y="85" fill="#f87171" font-size="12" font-weight="bold">⬅ 南方暖氣團</text>
+            <line x1="170" y1="20" x2="170" y2="120" stroke="#a855f7" stroke-width="3" stroke-dasharray="6,4"/>
+            <ellipse cx="170" cy="25" rx="45" ry="18" fill="#64748b"/>
+            <line x1="160" y1="48" x2="155" y2="80" stroke="#38bdf8" stroke-width="2"/>
+            <line x1="170" y1="48" x2="165" y2="80" stroke="#38bdf8" stroke-width="2"/>
+            <line x1="180" y1="48" x2="175" y2="80" stroke="#38bdf8" stroke-width="2"/>
+          `;
+        }
+      },
+
+      inspectTyphoonZone(zone) {
+        this.playChimeSound(true);
+        const pill = document.getElementById('typ-status-pill');
+        const desc = document.getElementById('typ-desc-text');
+        ['btn-typ-eye','btn-typ-wall','btn-typ-bands'].forEach(id => document.getElementById(id).classList.remove('active'));
+
+        if (zone === 'eye') {
+          document.getElementById('btn-typ-eye').classList.add('active');
+          pill.textContent = '中心風速: 5 km/h ｜ 雨量: 0 mm';
+          pill.style.background = '#0284c7';
+          desc.innerHTML = '👁️ <strong>【颱風眼（中心）】</strong> 位於颱風正核心。氣流微弱下沉，反而<strong>無風無雨、晴空萬里</strong>！請打破「颱風眼風雨最可怕」的迷思！';
+        } else if (zone === 'wall') {
+          document.getElementById('btn-typ-wall').classList.add('active');
+          pill.textContent = '風速: 190 km/h ｜ 雨量: 120 mm/hr (毀滅性)';
+          pill.style.background = '#dc2626';
+          desc.innerHTML = '🌪️ <strong>【眼牆（環狀雲牆）】</strong> 緊包圍在颱風眼四周。垂直上升氣流最狂暴，是<strong>整個颱風風雨最猛烈、破壞力最致命的狂暴核心</strong>！';
+        } else if (zone === 'bands') {
+          document.getElementById('btn-typ-bands').classList.add('active');
+          pill.textContent = '風速: 65 km/h ｜ 雨量: 25 mm/hr';
+          pill.style.background = '#475569';
+          desc.innerHTML = '🌀 <strong>【螺旋雨帶】</strong> 向外盤旋的雲帶，隨颱風旋轉為外圍陸地帶來<strong>間歇性的陣雨與強陣風</strong>。';
+        }
+      },
+
+      triggerCreekAlert(id) {
+        this.playChimeSound(false);
+        const btn = document.getElementById(`btn-danger-${id}`);
+        btn.classList.toggle('active');
+        const b1 = document.getElementById('btn-danger-1').classList.contains('active');
+        const b2 = document.getElementById('btn-danger-2').classList.contains('active');
+        const b3 = document.getElementById('btn-danger-3').classList.contains('active');
+        const badge = document.getElementById('flood-alert-badge');
+        const res = document.getElementById('creek-alert-result');
+
+        if (b1 || b2 || b3) {
+          badge.textContent = '⚠️ 生死危險警報響起！';
+          badge.style.background = '#dc2626';
+          badge.style.color = '#fff';
+          res.style.display = 'block';
+          res.innerHTML = '🚨 <strong>【山洪齊頭水即將抵達！】</strong> 上游暴雨引發的山洪巨浪將在 10~30 秒內吞噬河床！<strong>立刻放棄所有物品，大聲呼救並拔腿向兩側高處逃命！</strong>';
+        } else {
+          badge.textContent = '河床安全中';
+          badge.style.background = '#fee2e2';
+          badge.style.color = '#ef4444';
+          res.style.display = 'none';
+        }
+      },
+
+      toggleBagItem(btn, isEssential, name, desc) {
+        const feedback = document.getElementById('bag-feedback-msg');
+        const count = document.getElementById('bag-count');
+
+        if (btn.classList.contains('selected')) {
+          btn.classList.remove('selected');
+          btn.style.background = '#fff';
+          btn.style.borderColor = 'var(--primary)';
+          btn.style.color = 'var(--primary)';
+          if (isEssential) {
+            this.bagItemsSelected = Math.max(0, this.bagItemsSelected - 1);
+          }
+          count.textContent = this.bagItemsSelected;
+          feedback.textContent = `已從背包取出【${name}】。`;
+          return;
+        }
+
+        if (isEssential) {
+          this.playChimeSound(true);
+          btn.classList.add('selected');
+          btn.style.background = '#10b981';
+          btn.style.borderColor = '#10b981';
+          btn.style.color = '#fff';
+          this.bagItemsSelected++;
+          count.textContent = this.bagItemsSelected;
+          feedback.innerHTML = `✅ <strong>正確打包！【${name}】</strong>：${desc}`;
+          if (this.bagItemsSelected === 6) {
+            feedback.innerHTML = '🎉 <strong>【太棒了！防災小達人滿分！】</strong> 6 大生存維生物資全部準備齊全，背包輕便又能保命！';
+          }
+        } else {
+          this.playChimeSound(false);
+          feedback.innerHTML = `❌ <strong>【不建議放入！】${name}</strong>：${desc}`;
+        }
+      },
+
+      resetGoBagGame() {
+        this.bagItemsSelected = 0;
+        document.getElementById('bag-count').textContent = '0';
+        document.getElementById('bag-feedback-msg').textContent = '背包已清空，請重新挑選 6 大救命必備物資！';
+        const btns = document.querySelectorAll('#bag-items-grid button');
+        btns.forEach(b => {
+          b.classList.remove('selected');
+          b.style.background = '#fff';
+          b.style.borderColor = 'var(--primary)';
+          b.style.color = 'var(--primary)';
+        });
+      },
+
+      checkQuiz(qNum, choice) {
+        const fb = document.getElementById(`q${qNum}-feedback`);
+        fb.style.display = 'block';
+
+        if (qNum === 1) {
+          if (choice === 'B') {
+            this.playChimeSound(true);
+            fb.style.background = '#dcfce7';
+            fb.style.color = '#15803d';
+            fb.innerHTML = '🎉 <strong>答對了！標準答案 (B)</strong><br>解析：水蒸氣凝結必須同時有「降溫（冰塊）」與「凝結核（線香煙霧）」，乙罐條件齊備因此白霧最濃密！';
+          } else {
+            this.playChimeSound(false);
+            fb.style.background = '#fee2e2';
+            fb.style.color = '#b91c1c';
+            fb.innerHTML = '❌ <strong>答錯囉！請再想想看！</strong><br>迷思補救：水分子不會自然抱團成雲，大氣中必須有灰塵微粒（凝結核）作為附著支點才能凝結喔！';
+          }
+        } else if (qNum === 2) {
+          if (choice === 'B') {
+            this.playChimeSound(true);
+            fb.style.background = '#dcfce7';
+            fb.style.color = '#15803d';
+            fb.innerHTML = '🎉 <strong>答對了！標準答案 (B)</strong><br>解析：藍色三角鋸齒是冷鋒符號，等壓線密代表強陣風，過境會氣溫驟降伴隨陣雨，取消登山最安全！';
+          } else {
+            this.playChimeSound(false);
+            fb.style.background = '#fee2e2';
+            fb.style.color = '#b91c1c';
+            fb.innerHTML = '❌ <strong>答錯囉！請重新檢視符號！</strong><br>迷思補救：藍色鋸齒是冷鋒、紅色半圓是暖鋒；等壓線密代表強風，雨天山區容易濕滑失溫！';
+          }
+        }
+      },
+
+      toggleAiDrawer() {
+        document.getElementById('ai-drawer').classList.toggle('open');
+      },
+
+      openAiDrawerWithPrompt(question) {
+        const drawer = document.getElementById('ai-drawer');
+        if (!drawer.classList.contains('open')) drawer.classList.add('open');
+        this.switchAiTab('chat');
+        const container = document.getElementById('ai-tab-content');
+        container.innerHTML += `
+          <div class="user-chat-bubble">${question}</div>
+          <div class="ai-chat-bubble">
+            🤖 <strong>小天助教解答：</strong><br>
+            除濕機抽風冷凝時，會把空氣中的灰塵、皮屑、塵蟎和黴菌孢子一併吸進水箱，且內部冷凝管常有水垢與金屬氧化物。水看似乾淨，其實細菌超標，<strong>絕對不可生飲</strong>！澆花或沖馬桶是最佳用途喔！
+          </div>
+        `;
+        container.scrollTop = container.scrollHeight;
+      },
+
+      switchAiTab(tab) {
+        const tabs = document.querySelectorAll('.ai-tab-btn');
+        tabs.forEach(t => t.classList.remove('active'));
+        const container = document.getElementById('ai-tab-content');
+
+        if (tab === 'guided') {
+          tabs[0].classList.add('active');
+          container.innerHTML = `
+            <div class="ai-chat-bubble">
+              👋 哈囉！我是你的 <strong>AI 氣象學伴小天</strong>！點擊下方生活情境題，我們一起動腦探究：
+            </div>
+            <div class="interactive-card" style="margin:0; padding:10px;">
+              <strong style="font-size:0.82rem; color:var(--primary);">💡 挑戰題一：除濕機的水</strong>
+              <p style="font-size:0.78rem; margin:4px 0 6px 0;">密閉房間開一個月還能每天抽出一桶水嗎？</p>
+              <button class="btn-action" style="padding:3px 8px; font-size:0.75rem;" onclick="app.goToPage(6)">前往 P.6 作答 ➔</button>
+            </div>
+            <div class="interactive-card" style="margin:0; padding:10px; margin-top:6px;">
+              <strong style="font-size:0.82rem; color:var(--primary);">💡 挑戰題二：颱風天風雨突然停了</strong>
+              <p style="font-size:0.78rem; margin:4px 0 6px 0;">出太陽了，弟弟想衝去踢球，要不要拉住他？</p>
+              <button class="btn-action" style="padding:3px 8px; font-size:0.75rem;" onclick="app.goToPage(10)">前往 P.10 破案 ➔</button>
+            </div>
+            <div class="interactive-card" style="margin:0; padding:10px; margin-top:6px;">
+              <strong style="font-size:0.82rem; color:var(--primary);">💡 挑戰題三：溪邊烤肉頭頂沒下雨</strong>
+              <p style="font-size:0.78rem; margin:4px 0 6px 0;">溪水變混濁且浮現枯枝，該繼續玩嗎？</p>
+              <button class="btn-action" style="padding:3px 8px; font-size:0.75rem;" onclick="app.goToPage(11)">前往 P.11 避險 ➔</button>
+            </div>
+          `;
+        } else if (tab === 'myths') {
+          tabs[1].classList.add('active');
+          container.innerHTML = `
+            <div class="myth-box" style="margin:0;">
+              <div class="myth-title">🔍 迷思 1：燒開水白煙是水蒸氣？</div>
+              <p style="font-size:0.78rem; color:var(--text-main);"><strong>【真相】</strong> 水蒸氣無色透明完全看不見！看到的白煙是水蒸氣遇冷已經「凝結成微小水滴」！</p>
+            </div>
+            <div class="myth-box" style="margin:0; margin-top:6px;">
+              <div class="myth-title">🔍 迷思 2：高氣壓代表天氣很熱？</div>
+              <p style="font-size:0.78rem; color:var(--text-main);"><strong>【真相】</strong> 高氣壓指的是「空氣壓力高（重量重）」，冬天的極凍寒流也是超強冷高氣壓！</p>
+            </div>
+            <div class="myth-box" style="margin:0; margin-top:6px;">
+              <div class="myth-title">🔍 迷思 3：颱風眼風雨最狂暴？</div>
+              <p style="font-size:0.78rem; color:var(--text-main);"><strong>【真相】</strong> 颱風眼中心無風無雨甚至能看見星空！最恐怖的風雨是在圍繞在四周的「眼牆」！</p>
+            </div>
+            <div class="myth-box" style="margin:0; margin-top:6px;">
+              <div class="myth-title">🔍 迷思 4：颱風潛勢預報圈是颱風變胖？</div>
+              <p style="font-size:0.78rem; color:var(--text-main);"><strong>【真相】</strong> 圈圈代表未來颱風中心有 70% 機率通過的範圍誤差圈，不是暴風圈吹氣球變大！</p>
+            </div>
+          `;
+        } else if (tab === 'chat') {
+          tabs[2].classList.add('active');
+          container.innerHTML = `
+            <div class="ai-chat-bubble">
+              💬 歡迎提問！你可以點選下方常見問題，或在對話框輸入想了解的氣象奧祕：
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <button class="btn-action" style="font-size:0.76rem; text-align:left;" onclick="app.openAiDrawerWithPrompt('為什麼高山上煮水沸點比較低？')">
+                ❓ 為什麼玉山頂上煮開水不到 100℃？
+              </button>
+              <button class="btn-action" style="font-size:0.76rem; text-align:left;" onclick="app.openAiDrawerWithPrompt('為什麼雨滴不會砸傷人？')">
+                ❓ 雨滴從幾千公尺高空掉下來為什麼不會砸傷人？
+              </button>
+              <button class="btn-action" style="font-size:0.76rem; text-align:left;" onclick="app.openAiDrawerWithPrompt('焚風是怎麼形成的？')">
+                ❓ 台灣台東常見的「焚風」是怎麼吹出來的？
+              </button>
+            </div>
+          `;
+        }
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>
